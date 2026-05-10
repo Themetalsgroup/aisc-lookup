@@ -14,8 +14,8 @@ const DIM_SETS = {
   ST:   [["d","Tee Depth"],["bf","Flange Width"],["tw","Stem Thickness"],["tf","Flange Thickness"]],
   L:    [["d","Long Leg"],["b","Short Leg"],["t","Thickness"]],
   "2L": [["d","Long Leg"],["b","Short Leg"],["t","Thickness"]],
-  HSS:  [["Ht","Height"],["B","Width"],["OD","Outside Diameter"],["tdes","Design Wall Thickness"]],
-  PIPE: [["OD","Outside Diameter"],["tdes","Design Wall Thickness"]],
+  HSS:  [["Ht","Height"],["B","Width"],["OD","Outside Diameter"],["ID","Inside Diameter"],["tdes","Design Wall Thickness"]],
+  PIPE: [["OD","Outside Diameter"],["ID","Inside Diameter"],["tdes","Design Wall Thickness"]],
 };
 
 let HEADERS = [];
@@ -130,13 +130,22 @@ function buildDetail(row) {
   const type = row[HEADER_INDEX.Type];
   const set = DIM_SETS[type] || [];
 
+  // AISC tabulates ID for pipes but leaves it blank for round HSS — derive it.
+  const od = row[HEADER_INDEX.OD];
+  const tdes = row[HEADER_INDEX.tdes];
+  const tabulatedId = row[HEADER_INDEX.ID];
+  const computedId = (type === "HSS" && tabulatedId == null && od != null && tdes != null)
+    ? Math.round((od - 2 * tdes) * 1000) / 1000
+    : null;
+
   // Filter to fields that actually have a value for this shape (e.g. round vs
   // rectangular HSS use different keys).
   const items = [];
   for (const [key, label] of set) {
     const i = HEADER_INDEX[key];
     if (i == null) continue;
-    const v = row[i];
+    let v = row[i];
+    if ((v == null || v === "") && key === "ID" && computedId != null) v = computedId;
     if (v == null || v === "") continue;
     items.push({ key, label, value: v });
   }
@@ -296,13 +305,20 @@ function svgPipe() {
   <circle cx="120" cy="120" r="80" fill="#64748b"/>
   <circle cx="120" cy="120" r="62" fill="#111827"/>
   <g class="dim">
-    <line x1="40" y1="120" x2="200" y2="120" class="dl"/>
-    <line x1="40" y1="112" x2="40" y2="128" class="dt"/>
-    <line x1="200" y1="112" x2="200" y2="128" class="dt"/>
-    <text x="120" y="115" text-anchor="middle">OD</text>
+    <line x1="40" y1="120" x2="40" y2="22" class="dl" stroke-dasharray="2 3"/>
+    <line x1="200" y1="120" x2="200" y2="22" class="dl" stroke-dasharray="2 3"/>
+    <line x1="40" y1="22" x2="200" y2="22" class="dl"/>
+    <line x1="40" y1="14" x2="40" y2="30" class="dt"/>
+    <line x1="200" y1="14" x2="200" y2="30" class="dt"/>
+    <text x="120" y="12" text-anchor="middle">OD</text>
 
-    <text x="155" y="60" text-anchor="middle">t</text>
-    <line x1="155" y1="65" x2="173" y2="78" class="dl"/>
+    <line x1="58" y1="120" x2="182" y2="120" class="dl"/>
+    <line x1="58" y1="112" x2="58" y2="128" class="dt"/>
+    <line x1="182" y1="112" x2="182" y2="128" class="dt"/>
+    <text x="120" y="113" text-anchor="middle">ID</text>
+
+    <text x="158" y="60" text-anchor="middle">t</text>
+    <line x1="158" y1="65" x2="174" y2="80" class="dl"/>
   </g>
 </svg>`;
 }
