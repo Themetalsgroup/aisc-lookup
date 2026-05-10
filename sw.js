@@ -1,5 +1,5 @@
 // Cache-first service worker so the app works offline once installed.
-const CACHE = "aisc-v1";
+const CACHE = "aisc-v2";
 const ASSETS = [
   "./",
   "index.html",

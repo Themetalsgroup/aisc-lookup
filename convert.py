@@ -33,12 +33,25 @@ def main():
     ws = wb[SHEET]
 
     rows_iter = ws.iter_rows(values_only=True)
-    headers = [clean(h) for h in next(rows_iter)]
+    raw_headers = [clean(h) for h in next(rows_iter)]
+
+    # AISC v16 ships a single workbook with US customary columns first, then a
+    # parallel set of SI metric columns with duplicate header names. Truncate at
+    # the first repeated header so we keep only the US block.
+    seen = set()
+    cutoff = len(raw_headers)
+    for i, h in enumerate(raw_headers):
+        if h in seen:
+            cutoff = i
+            break
+        seen.add(h)
+    headers = raw_headers[:cutoff]
+
     rows = []
     for r in rows_iter:
         if not r or all(c is None for c in r):
             continue
-        rows.append([clean(c) for c in r])
+        rows.append([clean(c) for c in r[:cutoff]])
 
     data = {"headers": headers, "rows": rows}
     OUT.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
