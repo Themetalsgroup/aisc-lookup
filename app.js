@@ -33,7 +33,9 @@ async function load() {
     const data = await res.json();
     HEADERS = data.headers;
     HEADER_INDEX = Object.fromEntries(HEADERS.map((h, i) => [h, i]));
-    ROWS = data.rows;
+    // AISC ships rows largest-first within each type. Reverse so the smaller
+    // members surface first — that matches how Chuck uses the list.
+    ROWS = data.rows.slice().reverse();
     init();
   } catch (e) {
     $("#status").textContent = "Failed to load database: " + e.message;
@@ -87,7 +89,6 @@ function render() {
       if (!label.includes(q)) continue;
     }
     matches.push(r);
-    if (matches.length >= 200) break;
   }
 
   const ul = $("#results");
@@ -97,7 +98,7 @@ function render() {
     return;
   }
   $("#status").textContent =
-    `${matches.length}${matches.length >= 200 ? "+" : ""} match${matches.length === 1 ? "" : "es"}.`;
+    `${matches.length} match${matches.length === 1 ? "" : "es"}.`;
 
   for (const r of matches) {
     const li = document.createElement("li");
