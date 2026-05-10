@@ -1,0 +1,15 @@
+{
+  "name": "AISC Shape Lookup",
+  "short_name": "AISC Shapes",
+  "description": "Quick lookup of section properties from the AISC Shapes Database v16.0.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#1f2937",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
